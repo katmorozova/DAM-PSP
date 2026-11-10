@@ -6,6 +6,7 @@ package com.mycompany.loganalyzer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
@@ -23,46 +24,90 @@ public class AnalitzadorPrincipal {
         try{
             //Instancia el procés fill executant la classe FiltreLog mitjançant ProcessBuilder
             String classPath = System.getProperty("java.class.path");
-            ProcessBuilder pb = new ProcessBuilder(
+            ProcessBuilder pbError = new ProcessBuilder(
                     "java", 
                     "-cp", 
                     classPath, 
-                    "com.mycompany.loganalyzer.FiltreLog"
+                    "com.mycompany.loganalyzer.FiltreLog", 
+                    "ERROR"
             );
-            Process filtreLog = pb.start();
-
-            //Envia un text de prova de múltiples línies al fill a través del seu OutputStream
-            BufferedWriter out = new BufferedWriter(
-                    new OutputStreamWriter(filtreLog.getOutputStream())
+            ProcessBuilder pbWarning = new ProcessBuilder(
+                    "java", 
+                    "-cp", 
+                    classPath, 
+                    "com.mycompany.loganalyzer.FiltreLog", 
+                    "WARNING"
             );
+            
+            // Redirigir la sortida d'errors (stderr) cap a un fitxer físic
+            File logErrorFile = new File("errors_filtre.log");
+            pbError.redirectError(logErrorFile);
+            pbWarning.redirectError(logErrorFile);
+            
+            //Iniciar ambdós processos de manera concurrent
+            Process procesError = pbError.start();
+            Process procesWarning = pbWarning.start();
 
             String textoPrueba = "2026-09-30 INFO Inicio de app\n" +
                                  "2026-09-30 ERROR Fallo en base de datos\n" +
-                                 "2026-09-30 ERROR Timeout en red\n";
-
-            out.write(textoPrueba);
-
+                                 "2026-09-30 WARNING Alerta de memoria\n" +
+                                 "2026-09-30 ERROR Timeout en red\n" +
+                                 "2026-09-30 WARNING Espacio disco bajo\n";
+            
+//Envia un text de prova de múltiples línies al fill a través del seu OutputStream
+            BufferedWriter outError = new BufferedWriter(
+                    new OutputStreamWriter(procesError.getOutputStream())
+            );
+            outError.write(textoPrueba);
             //Executa out.flush() i out.close() per indicar la fi de les dades
-            out.flush();
-            out.close();
+            outError.flush();
+            outError.close();
+            
+            BufferedWriter outWarning = new BufferedWriter(
+                    new OutputStreamWriter(procesWarning.getOutputStream())
+            );
+            outWarning.write(textoPrueba);
+            outWarning.flush();
+            outWarning.close();
 
             //Llegeix la resposta del fill pel seu InputStream, la mostra per pantalla i espera la finalització amb p.waitFor()
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(filtreLog.getInputStream())
+            BufferedReader inError = new BufferedReader(
+                    new InputStreamReader(procesError.getInputStream())
             );
-            String resultado = in.readLine();
+            BufferedReader inWarning = new BufferedReader(
+                    new InputStreamReader(procesWarning.getInputStream())
+            );
+            
+            String resErrorStr = inError.readLine();
+            String resWarningStr = inWarning.readLine();
 
             // Esperar a que el hijo finalice
-            int exitCode = filtreLog.waitFor();
-          
+            procesError.waitFor();
+            procesWarning.waitFor();
+            
             int numErrors = 0;
-            if (resultado != null && !resultado.isEmpty()) {
-                numErrors = Integer.parseInt(resultado.trim());
+            if (resErrorStr != null && !resErrorStr.isEmpty()) {
+                numErrors = Integer.parseInt(resErrorStr.trim());
             }
+            
+            int numWarnings = 0;
+            if (resWarningStr != null && !resWarningStr.isEmpty()) {
+                numWarnings = Integer.parseInt(resWarningStr.trim());
+            }
+            
+            int finalExitCode;
+            if (procesError.exitValue() == 0 && procesWarning.exitValue() == 0){
+                finalExitCode = 0;
+            } else {
+                finalExitCode = 1;
+            }
+            
             System.out.println(
                     "RESULTAT: ERRORS=" + numErrors + 
-                            " | WARNINGS=0 | EXIT_CODE=" + exitCode
+                            " | WARNINGS=" + numWarnings + 
+                            " | EXIT_CODE=" + finalExitCode
             );
+            
         } catch(Exception e) {
             e.printStackTrace();
         }
