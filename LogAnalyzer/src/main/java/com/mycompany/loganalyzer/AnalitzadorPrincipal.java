@@ -49,10 +49,12 @@ public class AnalitzadorPrincipal {
             Process procesWarning = pbWarning.start();
 
             String textoPrueba = "2026-09-30 INFO Inicio de app\n" +
-                                 "2026-09-30 ERROR Fallo en base de datos\n" +
-                                 "2026-09-30 WARNING Alerta de memoria\n" +
-                                 "2026-09-30 ERROR Timeout en red\n" +
-                                 "2026-09-30 WARNING Espacio disco bajo\n";
+                                   "2026-09-30 ERROR Fallo en base de datos\n" +
+                                   "2026-09-30 WARNING Alerta de memoria\n" +
+                                   "2026-09-30 ERROR Timeout en red\n" +
+                                   "2026-09-30 WARNING Espacio disco bajo\n" +
+                                   "2026-09-30 ERROR Error adicional critico\n" +
+                                   "2026-09-30 WARNING Alerta adicional\n";
             
 //Envia un text de prova de múltiples línies al fill a través del seu OutputStream
             BufferedWriter outError = new BufferedWriter(
