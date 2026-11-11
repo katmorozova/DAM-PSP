@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.loganalyzer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,14 +27,14 @@ public class AnalitzadorPrincipal {
                     "java", 
                     "-cp", 
                     classPath, 
-                    "com.mycompany.loganalyzer.FiltreLog", 
+                    "FiltreLog", 
                     "ERROR"
             );
             ProcessBuilder pbWarning = new ProcessBuilder(
                     "java", 
                     "-cp", 
                     classPath, 
-                    "com.mycompany.loganalyzer.FiltreLog", 
+                    "FiltreLog", 
                     "WARNING"
             );
             
