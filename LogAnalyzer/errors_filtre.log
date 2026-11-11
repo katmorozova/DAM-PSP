@@ -1,0 +1,2 @@
+Error: no se ha encontrado o cargado la clase principal FiltreLog
+Causado por: java.lang.ClassNotFoundException: FiltreLog
